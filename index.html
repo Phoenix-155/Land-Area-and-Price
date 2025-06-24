@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Land Area & Price Calculator (India)</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f4f6;
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #1f2937;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    .main-content {
+      flex: 1;
+    }
+    .side-content {
+      flex: 0 0 250px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      height: fit-content;
+    }
+    .left-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      color: #374151;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row .input-group {
+      flex: 1;
+      min-width: 120px;
+    }
+    .results {
+      background: #e0f2fe;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 16px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2em;
+      color: #1f2937;
+    }
+    .calculate-button, .add-button, .reset-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .reset-button {
+      background-color: #ef4444;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #d1d5db;
+      text-align: center;
+    }
+    td[contenteditable="true"] {
+      background-color: #f9fafb;
+      cursor: text;
+      font-weight: normal;
+    }
+    td[contenteditable="true"]:focus {
+      outline: 2px solid #2563eb;
+      background-color: #e0f2fe;
+    }
+    .table-wrapper {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    .delete-btn {
+      background-color: #ef4444;
+      border: none;
+      color: white;
+      font-size: 16px;
+      padding: 2px 8px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    /* .drag-handle {
+      cursor: move;
+      font-size: 18px;
+      color: #6b7280;
+    } */
+    .drag-handle {
+      cursor: grab;
+      font-size: 18px;
+      color: #6b7280;
+    }
+    .dragging .drag-handle {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <h2>🧮 Land Area & Price Calculator</h2>
+    <div class="left-section">
+      <div class="section-area">
+        <label>Enter Area (Acre + Cent):</label>
+        <div class="row">
+          <div class="input-group">
+            <label for="acre">Acre</label>
+            <input type="number" id="acre" placeholder="Acre" min="0" />
+          </div>
+          <div class="input-group">
+            <label for="centInAcre">Cent</label>
+            <input type="number" id="centInAcre" placeholder="Cent" min="0" />
+          </div>
+        </div>
+        <label for="ground">Ground</label>
+        <input type="number" id="ground" placeholder="Ground" min="0" />
+        <label for="cent">Cent</label>
+        <input type="number" id="cent" placeholder="Cent" min="0" />
+        <label for="sqft">Square Feet</label>
+        <input type="number" id="sqft" placeholder="Square Feet" min="0" />
+      </div>
+
+      <div class="section-price">
+        <label>Enter Price per Unit (₹):</label>
+        <label for="pricePerAcre">Price per Acre</label>
+        <input type="text" id="pricePerAcre" placeholder="₹ per Acre" />
+        <label for="pricePerGround">Price per Ground</label>
+        <input type="text" id="pricePerGround" placeholder="₹ per Ground" />
+        <label for="pricePerCent">Price per Cent</label>
+        <input type="text" id="pricePerCent" placeholder="₹ per Cent" />
+        <label for="pricePerSqft">Price per Square Foot</label>
+        <input type="text" id="pricePerSqft" placeholder="₹ per Sq. Ft" />
+      </div>
+
+
+      <button class="calculate-button" onclick="calculatePriceAndSqft()">🔍 Calculate</button>
+      <button class="add-button" onclick="addToTable()">➕ Add to Table</button>
+      <button class="reset-button" onclick="resetTable()">♻️ Reset Table</button>
+
+      <div class="results" id="totalCostDisplay">Total Cost: ₹0</div>
+
+      <div class="table-wrapper">
+        <strong>🧾 Land Portions Table</strong>
+        <table id="landTable">
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Land Name</th>
+              <th>Sq. Ft</th>
+              <th>Cent</th>
+              <th>Price/Cent</th>
+              <th>Price</th>
+              <th>☰</th> <!-- drag handle column -->
+              <th>❌</th> <!-- delete column -->
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <th colspan="2">Total</th>
+              <th id="totalSqft">0</th>
+              <th id="totalCent">0</th>
+              <th>-</th>
+              <th id="totalPrice">₹0</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="results" id="overallTotalPriceDisplay">
+        <strong style="font-size: 1.2em;">Overall Total Price: ₹0</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-content">
+    <strong>📏 Conversion Table</strong>
+    <table>
+      <tbody>
+        <tr><td>1 Cent</td><td>435.56 Sq. Ft</td></tr>
+        <tr><td>1 Acre</td><td>100 Cent</td></tr>
+        <tr><td>1 Ground</td><td>5.51 Cent</td></tr>
+        <tr><td>1 Ground</td><td>2400 Sq. Ft</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const sqftPerCent = 435.56;
+    const centPerAcre = 100;
+    const centPerGround = 5.51;
+    const sqftPerAcre = sqftPerCent * centPerAcre;
+    const sqftPerGround = 2400;
+
+    let portionIndex = 0;
+    let totalSqft = 0;
+    let totalCent = 0;
+    let totalPortionPrice = 0;
+    let groundAlreadyAdded = false;
+
+    function formatIndianCurrency(amount) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 2
+      }).format(amount);
+    }
+
+    function numberToWords(num) {
+      const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+        "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+      const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+      if ((+num) === 0) return 'Zero';
+      function inWords(n) {
+        if (n < 20) return a[n];
+        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
+        if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " and " + inWords(n % 100) : "");
+        if (n < 100000) return inWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + inWords(n % 1000) : "");
+        if (n < 10000000) return inWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + inWords(n % 100000) : "");
+        return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
+      }
+      return inWords(Math.round(num));
+    }
+
+    function parseCurrencyInput(id) {
+      const raw = document.getElementById(id).value;
+      return parseFloat(raw.replace(/[^0-9.]/g, '')) || 0;
+    }
+
+    function getSingleAreaUnit() {
+      const acre = parseFloat(document.getElementById('acre').value) || 0;
+      const centInAcre = parseFloat(document.getElementById('centInAcre').value) || 0;
+      const ground = parseFloat(document.getElementById('ground').value) || 0;
+      const cent = parseFloat(document.getElementById('cent').value) || 0;
+      const sqftInput = parseFloat(document.getElementById('sqft').value) || 0;
+
+      const inputs = [acre + centInAcre, ground, cent, sqftInput].filter(v => v > 0);
+      if (inputs.length !== 1) return null; // Multiple or no area inputs
+
+      if (acre || centInAcre) return (acre * sqftPerAcre) + (centInAcre * sqftPerCent);
+      if (ground) return ground * sqftPerGround;
+      if (cent) return cent * sqftPerCent;
+      return sqftInput;
+    }
+
+    function getSinglePriceUnit(sqft) {
+      const pricePerAcre = parseCurrencyInput('pricePerAcre');
+      const pricePerGround = parseCurrencyInput('pricePerGround');
+      const pricePerCent = parseCurrencyInput('pricePerCent');
+      const pricePerSqft = parseCurrencyInput('pricePerSqft');
+
+      const prices = [pricePerAcre, pricePerGround, pricePerCent, pricePerSqft].filter(p => p > 0);
+      if (prices.length !== 1) return null; // Multiple or no price inputs
+
+      if (pricePerAcre) return (sqft / sqftPerAcre) * pricePerAcre;
+      if (pricePerGround) return (sqft / sqftPerGround) * pricePerGround;
+      if (pricePerCent) return (sqft / sqftPerCent) * pricePerCent;
+      return sqft * pricePerSqft;
+    }
+
+    function calculatePriceAndSqft() {
+      const sqft = getSingleAreaUnit();
+      if (sqft == null) {
+        alert("Please enter only one area unit at a time.");
+        return { sqft: 0, cost: 0, cent: 0 };
+      }
+
+      const cost = getSinglePriceUnit(sqft);
+      if (cost == null) {
+        alert("Please enter only one price unit at a time.");
+        return { sqft: 0, cost: 0, cent: 0 };
+      }
+
+      const totalCostElem = document.getElementById('totalCostDisplay');
+      const word = cost > 0 ? `(${numberToWords(cost)} Rupees)` : '';
+      totalCostElem.innerHTML = `<strong style="font-size: 1.2em;">Total Cost: ${formatIndianCurrency(cost)}<br/>${word}</strong>`;
+
+      return { sqft, cost, cent: sqft / sqftPerCent };
+    }
+
+    function addRow(sqft, cost, centVal, label = '') {
+      const tbody = document.querySelector('#landTable tbody');
+      const row = document.createElement('tr');
+      portionIndex++;
+      
+      const pricePerCentVal = centVal > 0 ? formatIndianCurrency(cost / centVal) : '-';
+      
+      row.classList.add('draggable');
+      //row.setAttribute('draggable', 'true'); // ✅ This is required!
+      
+      // row.innerHTML = `
+      //   <td>${portionIndex}</td>
+      //   <td contenteditable="true" title="Edit Land Name">${label || 'Unnamed'}</td>
+      //   <td>${sqft.toFixed(2)}</td>
+      //   <td>${centVal.toFixed(2)}</td>
+      //   <td>${pricePerCentVal}</td>
+      //   <td>${formatIndianCurrency(cost)}</td>
+      //   <td><span class="drag-handle" draggable="true">☰</span></td>
+      //   <td><button class="delete-btn" onclick="deleteRow(this)">&times;</button></td>
+      // `;
+      row.innerHTML = `
+        <td>${portionIndex}</td>
+        <td contenteditable="true" title="Edit Land Name">${label || 'Unnamed'}</td>
+        <td>${sqft.toFixed(2)}</td>
+        <td>${centVal.toFixed(2)}</td>
+        <td>${pricePerCentVal}</td>
+        <td>${formatIndianCurrency(cost)}</td>
+        <td><span class="drag-handle" draggable="true">☰</span></td>  <!-- draggable only here -->
+        <td><button class="delete-btn" onclick="deleteRow(this)">&times;</button></td>
+      `;
+
+      tbody.appendChild(row);
+      
+      totalSqft += sqft;
+      totalCent += centVal;
+      totalPortionPrice += cost;
+    }
+
+
+    function addToTable() {
+      const result = calculatePriceAndSqft();
+      if (result.sqft <= 0 || result.cost <= 0) return;
+      
+      addRow(result.sqft, result.cost, result.cent);
+
+      totalSqft = Math.round(totalSqft * 100) / 100;
+      totalCent = Math.round(totalCent * 100) / 100;
+      totalPortionPrice = Math.round(totalPortionPrice * 100) / 100;
+      
+      document.getElementById('totalSqft').innerText = totalSqft.toFixed(2);
+      document.getElementById('totalCent').innerText = totalCent.toFixed(2);
+      document.getElementById('totalPrice').innerText = formatIndianCurrency(totalPortionPrice);
+      
+      const overallBox = document.getElementById('overallTotalPriceDisplay');
+      if (totalPortionPrice > 0) {
+        overallBox.innerHTML = `<strong style="font-size: 1.2em;">Overall Total Price: ${formatIndianCurrency(totalPortionPrice)}<br/>(${numberToWords(totalPortionPrice)} Rupees)</strong>`;
+      } else {
+        overallBox.innerHTML = `<strong style="font-size: 1.2em;">Overall Total Price: ₹0</strong>`;
+      }
+    }
+
+
+    function resetTable() {
+      document.querySelector('#landTable tbody').innerHTML = '';
+      portionIndex = 0;
+      totalSqft = 0;
+      totalCent = 0;
+      totalPortionPrice = 0;
+      groundAlreadyAdded = false;
+
+      totalSqft = Math.round(totalSqft * 100) / 100;
+      totalCent = Math.round(totalCent * 100) / 100;
+      totalPortionPrice = Math.round(totalPortionPrice * 100) / 100;
+      
+      document.getElementById('totalSqft').innerText = '0';
+      document.getElementById('totalCent').innerText = '0';
+      document.getElementById('totalPrice').innerText = '₹0';
+      document.getElementById('overallTotalPriceDisplay').innerHTML = '<strong style="font-size: 1.2em;">Overall Total Price: ₹0</strong>';
+      document.getElementById('totalCostDisplay').innerHTML = 'Total Cost: ₹0';
+    }
+
+    function handleCurrencyInput(e) {
+      const input = e.target;
+      const value = input.value.replace(/[^0-9.]/g, ""); 
+      const number = parseFloat(value);
+      if (!isNaN(number)) {
+        input.value = formatIndianCurrency(number);
+      } else {
+        input.value = "";
+      }
+    }
+
+    function deleteRow(button) {
+      const row = button.closest('tr');
+      const sqft = parseFloat(row.cells[2].innerText);
+      const cent = parseFloat(row.cells[3].innerText);
+      const price = parseFloat(row.cells[5].innerText.replace(/[^0-9.]/g, ''));
+      
+      row.remove();
+      
+      totalSqft -= sqft;
+      totalCent -= cent;
+      totalPortionPrice -= price;
+      
+      // ✅ Round to avoid floating point precision issues
+      totalSqft = Math.round(totalSqft * 100) / 100;
+      totalCent = Math.round(totalCent * 100) / 100;
+      totalPortionPrice = Math.round(totalPortionPrice * 100) / 100;
+
+      document.getElementById('totalSqft').innerText = totalSqft.toFixed(2);
+      document.getElementById('totalCent').innerText = totalCent.toFixed(2);
+      document.getElementById('totalPrice').innerText = formatIndianCurrency(totalPortionPrice);
+
+      const overallBox = document.getElementById('overallTotalPriceDisplay');
+      if (totalPortionPrice > 0) {
+        overallBox.innerHTML = `<strong style="font-size: 1.2em;">Overall Total Price: ${formatIndianCurrency(totalPortionPrice)}<br/>(${numberToWords(totalPortionPrice)} Rupees)</strong>`;
+      } else {
+        overallBox.innerHTML = `<strong style="font-size: 1.2em;">Overall Total Price: ₹0</strong>`;
+      }
+
+      // 🔄 Recalculate S.No after deletion
+      const rows = document.querySelectorAll('#landTable tbody tr');
+      rows.forEach((tr, index) => {
+        tr.cells[0].innerText = index + 1;
+      });
+
+      portionIndex = rows.length;
+    }
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const tableBody = document.querySelector("#landTable tbody");
+      
+      let draggingRow = null;
+      
+      tableBody.addEventListener("dragstart", e => {
+        // Now dragstart can happen only on drag-handle span because only it is draggable
+        draggingRow = e.target.closest("tr");
+        draggingRow.classList.add("dragging");
+      });
+        
+        tableBody.addEventListener("dragend", () => {
+          if (draggingRow) {
+            draggingRow.classList.remove("dragging");
+            draggingRow = null;
+            
+            // Renumber S.No after drag
+            const rows = tableBody.querySelectorAll("tr");
+            rows.forEach((row, index) => {
+              row.cells[0].innerText = index + 1;
+            });
+            portionIndex = rows.length;
+          }
+        });
+        
+        tableBody.addEventListener("dragover", e => {
+          e.preventDefault();
+          if (!draggingRow) return;
+          
+          const afterElement = getDragAfterElement(tableBody, e.clientY);
+          if (afterElement == null) {
+            tableBody.appendChild(draggingRow);
+          } else {
+            tableBody.insertBefore(draggingRow, afterElement);
+          }
+        });
+        
+        function getDragAfterElement(container, y) {
+          const draggableElements = [...container.querySelectorAll("tr:not(.dragging)")];
+          
+          return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+              return { offset: offset, element: child };
+            } else {
+              return closest;
+            }
+          }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+      });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      ['pricePerAcre', 'pricePerGround', 'pricePerCent', 'pricePerSqft'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('blur', handleCurrencyInput);
+      });
+    });
+  </script>
+
+</body>
+</html>
